@@ -41,6 +41,77 @@ Thanks to @ziye0229 for making GUI come true :kissing_heart:
 2. 提供功能完备的系统和友好的用户界面；
 3. 设计事务管理、触发器等。
 
+## 实验4：查询处理算法的模拟实现（1314行）
+### 实验要求 :writing_hand:
+本实验使用ExtMem程序库已预先建立了关系R和S的物理存储。关系的物理存储形式为磁盘块序列B<sub>1</sub>, B<sub>2</sub>, …, B<sub>n</sub>，其中B<sub>i</sub>的最后4个字节存放B<sub>i+1</sub>的地址。
+
+extmem-c\data下的每个文件模拟一个磁盘块。R和S的每个元组的大小均为8个字节。每个磁盘块大小为64个字节，可存放7个元组和1个后继磁盘块地址。
+
+初始化缓冲区块的大小为64个字节，缓冲区大小设置为64 * 8 + 8 = 520个字节。其中8个字节为标志位，表示每个块是否被占用。这样，每块可存放7个元组和1个后继磁盘块地址，缓冲区内可最多存放8个块。
+
+本实验已随机生成关系R和S，R中包含16 * 7 = 112个元组，S中包含32 * 7 = 224个元组。
+
+extmem-c\data目录下文件1.blk至16.blk 为关系R的元组数据，文件17.blk至48.blk 为关系S的元组数据。
+
+关系R具有两个属性A和B，其中A和B的属性值均为int型（4个字节），A的值域为[1, 40]，B的值域为[1, 1000]。
+
+关系S具有两个属性C和D，其中C和D的属性值均为int型（4个字节）。C的值域为[20, 80]，D的值域为[1, 1000]。
+
+基于ExtMem程序库，使用C语言模拟实现以下关系操作：
+
+1. 实现基于线性搜索的关系选择算法：基于ExtMem程序库，使用C语言实现线性搜索算法，选出R.A=30或S.C=23的元组，记录IO读写次数，并将选择结果存放在磁盘上。
+
+2. 实现两阶段多路归并排序算法（TPMMS）：利用内存缓冲区将关系R和S分别排序，并将排序 后的结果存放在磁盘上。
+
+3. 实现基于索引的关系选择算法：利用（2）中的排序结果为关系R或S分别建立索引文件，利用索引文件选出R.A=30或S.C=23的元组，并将选择结果存放在磁盘上。记录IO读写次数，与（1）中的结果对比。
+
+4. 实现关系投影算法：对关系R上的A属性（非主码）进行投影并去重，将结果存放在磁盘上。
+
+5. 实现基于排序的连接操作算法（Sort-Merge-Join）：对关系R和S计算R.A连接S.C，并统计连接次数，将连接结果存放在磁盘上。
+
+6. 基于排序或散列的两趟扫描算法，实现其中一种集合操作算法：并、交、差（S-R）中的一种。将结果存放在磁盘上，并统计并、交、差操作后的元组个数。
+
+### ExtMem程序库介绍  :sob:
+ExtMem程序库是一个专门为本课程编写的模拟外存磁盘块存储和存取的程序库，由C语言开发。
+
+ExtMem程序库的功能包括内存缓冲区管理、磁盘块读/写，它提供了1个数据结构和7个API函数。
+
+ExtMem程序库定义了Buffer数据类型，包含如下6个域：
+* numIO：外存I/O次数；
+* bufSize：缓冲区大小（单位：字节）；
+* blkSize：块的大小（单位：字节）；
+* numAllBlk：缓冲区内可存放的最多块数；
+* numFreeBlk：缓冲区内可用的块数；
+* data：缓冲区内存区域。
+
+缓冲区中每个块内数据大小为blkSize个字节，**其最后4个字节用来存放其后继磁盘块的地址**（在ExtMem库中，我们4个字节来记录磁盘块地址，地址在程序中为unsigned int类型。若无后继磁盘块，则置为0），其余(blkSize – 4)个字节用于存放块内的记录。缓冲区每个块之前有1个字节的标志位表示是否被占用。
+
+ExtMem库提供了如下API函数：
+* `Buffer *initBuffer(size_t bufSize, size_t blkSize, Buffer *buf);`
+初始化缓冲区，其输入参数bufSize为缓冲区大小（单位：字节），blkSize为块的大小（单位：字节），buf为指向待初始化的缓冲区的指针。若缓冲区初始化成功，则该函数返回指向该缓冲区的地址；否则，返回NULL。
+
+* `void freeBuffer(Buffer *buf);`
+释放缓冲区buf占用的内存空间。
+
+* `unsigned char *getNewBlockInBuffer(Buffer *buf);`
+在缓冲区buf中申请一个新的块。若申请成功，则返回该块的起始地址；否则，返回NULL。
+
+* `void freeBlockInBuffer(unsigned char *blk, Buffer *buf);`
+解除块blk对缓冲区内存的占用，即将blk占据的内存区域标记为可用。
+
+* `int dropBlockOnDisk(unsigned int addr);`
+从磁盘上删除地址为addr的磁盘块内的数据。若删除成功，则返回0；否则，返回-1。
+
+* `unsigned char *readBlockFromDisk(unsigned int addr, Buffer *buf);`
+将磁盘上地址为addr的磁盘块读入缓冲区buf。若读取成功，则返回缓冲区内该块的地址；否则，返回NULL。同时，缓冲区buf的I/O次数加1。
+
+* `int writeBlockToDisk(unsigned char *blkPtr, unsigned int addr, Buffer *buf);`
+将缓冲区buf内的块blk写入磁盘上地址为addr的磁盘块。若写入成功，则返回0；否则，返回-1。同时，缓冲区buf的I/O次数加1。
+
+**声明：**ExtMem库是为本课程专门开发的模拟外存磁盘块存储和存取的程序库，不保证其能够真正实现对磁盘块的存取操作，同时也不保证其排除一切软件错误。本课程及ExtMem开发者不会对使用该程序库所导致的一切错误负责。
+
 Thanks to @ziye0229 for making PyQt moving :kissing_heart:
+
+Thanks to @ziye0229 for finding bugs after my clueless desperate 12-hour debug
 
 A big sigh to things happening recently :sob:
