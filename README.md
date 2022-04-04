@@ -1,4 +1,4 @@
-# 2020Spring-Database
+# HITSZ-2020Spring-Database
 The lab work of Database Course in 2020 Spring Semester.
 
 ## 实验2：使用高级语言操作MySQL数据库
