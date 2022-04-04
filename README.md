@@ -108,10 +108,8 @@ ExtMem库提供了如下API函数：
 * `int writeBlockToDisk(unsigned char *blkPtr, unsigned int addr, Buffer *buf);`
 将缓冲区buf内的块blk写入磁盘上地址为addr的磁盘块。若写入成功，则返回0；否则，返回-1。同时，缓冲区buf的I/O次数加1。
 
-**声明：**ExtMem库是为本课程专门开发的模拟外存磁盘块存储和存取的程序库，不保证其能够真正实现对磁盘块的存取操作，同时也不保证其排除一切软件错误。本课程及ExtMem开发者不会对使用该程序库所导致的一切错误负责。
+**声明：ExtMem库是为本课程专门开发的模拟外存磁盘块存储和存取的程序库，不保证其能够真正实现对磁盘块的存取操作，同时也不保证其排除一切软件错误。本课程及ExtMem开发者不会对使用该程序库所导致的一切错误负责。**
 
-Thanks to @ziye0229 for making PyQt moving :kissing_heart:
-
-Thanks to @ziye0229 for finding bugs after my clueless desperate 12-hour debug
+Thanks to @ziye0229 for making PyQt moving and finding bugs after my clueless desperate 12-hour debug :kissing_heart:
 
 A big sigh to things happening recently :sob:
